@@ -24,7 +24,6 @@ import {
   
         {/* Bio Section */}
         <SkeletonText noOfLines={2} spacing="4" width="80%" />
-  
         
         
       </VStack>

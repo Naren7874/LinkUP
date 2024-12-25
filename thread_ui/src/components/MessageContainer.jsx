@@ -76,8 +76,11 @@ const MessageContainer = () => {
       setMessages((prev) => [...prev, message]);
       }
 
-      const sound = new Audio(messageSound);
-      sound.play()
+      if(!document.hasFocus()){
+        const sound = new Audio(messageSound);
+        sound.play()
+      }
+
       setConversations((prev) => {
 				const updatedConversations = prev.map((conversation) => {
 					if (conversation._id === message.conversationId) {

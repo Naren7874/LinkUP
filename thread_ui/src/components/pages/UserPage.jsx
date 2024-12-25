@@ -22,6 +22,7 @@ const UserPage = () => {
   useEffect(() => {
 
     const getUserPost = async ()=>{
+      if(!user) return ;
       try {
           const res  = await apiReq.get(`/posts/user/${username}`)
           if (res.data.error) {
@@ -41,7 +42,7 @@ const UserPage = () => {
     }
    
     getUserPost(); // Call this function after the user data is fetched
-  }, [username, showToast,setPosts]);
+  }, [username, showToast, setPosts, user]);
 
 
   if (loading ) {

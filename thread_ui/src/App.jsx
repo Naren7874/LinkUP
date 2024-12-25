@@ -12,6 +12,7 @@ import { Navigate } from "react-router-dom"
 import UpdateProfile from "./components/pages/UpdateProfile"
 import CreatePost from "./components/CreatePost"
 import ChatPage from "./components/pages/ChatPage.jsx"
+import SettingsPage from "./components/pages/SettingsPage.jsx"
 function App() {
   const user = useRecoilValue(userAtom);
   // console.log(user);
@@ -35,8 +36,8 @@ function App() {
         } />
         <Route path="/:username/post/:pid" element={<PostPage/>} />
         <Route path="/chat" element={user ? <ChatPage/> : <Navigate to={'/auth'}/> } />
+        <Route path="/settings" element={user ? <SettingsPage/> : <Navigate to={'/auth'}/> } />
       </Routes>
-      {/* {user && <CreatePost/>} */}
     </Container>
     </Box>
 

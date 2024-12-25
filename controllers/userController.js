@@ -2,6 +2,7 @@ import User from '../models/userModel.js';
 import Post from '../models/postModel.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import generateTokenAndSetCookie from "../utils/helpers/generateTokenAndSetCookie.js";
 import dotenv from 'dotenv';
 import { v2 as cloudinary} from 'cloudinary';
 import mongoose from 'mongoose';
@@ -12,53 +13,41 @@ dotenv.config();
 // User Sign Up
 const signUpUser = async (req, res) => {
   try {
-    const { name, email, username, password } = req.body;
+		const { name, email, username, password } = req.body;
+		const user = await User.findOne({ $or: [{ email }, { username }] });
 
-    const existingUser = await User.findOne({ email, username });
-    if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
-    }
+		if (user) {
+			return res.status(400).json({ error: "User already exists" });
+		}
+		const salt = await bcrypt.genSalt(10);
+		const hashedPassword = await bcrypt.hash(password, salt);
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+		const newUser = new User({
+			name,
+			email,
+			username,
+			password: hashedPassword,
+		});
+		await newUser.save();
 
-    const user = new User({
-      name,
-      email,
-      username,
-      password: hashedPassword,
-    });
+		if (newUser) {
+			generateTokenAndSetCookie(newUser._id, res);
 
-    await user.save();
-
-    if (user) {
-        // Generate JWT token after successful signup
-        const age = 1000 * 60 * 60 * 24 * 7; // 7 days
-        const token = jwt.sign(
-          {
-            id: user._id,
-            username: user.username,
-            name: user.name,
-            email: user.email,
-          },
-          process.env.JWT_SECRET,
-          { expiresIn: age }
-        );
-  
-        // Set the token as an HTTP-only cookie
-        res
-          .cookie('token', token, {
-            httpOnly: true,
-            maxAge: age,
-          })
-          .status(201)
-          .json(user);
-    } else {
-      res.status(400).json({ message: 'Invalid user data' });
-    }
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+			res.status(201).json({
+				_id: newUser._id,
+				name: newUser.name,
+				email: newUser.email,
+				username: newUser.username,
+				bio: newUser.bio,
+				profilePic: newUser.profilePic,
+			});
+		} else {
+			res.status(400).json({ error: "Invalid user data" });
+		}
+	} catch (err) {
+		res.status(500).json({ error: err.message });
+		console.log("Error in signupUser: ", err.message);
+	}
 };
 
 // User Sign In
@@ -76,8 +65,12 @@ const signInUser = async (req, res) => {
       return res.status(400).json({ message: 'Invalid Credentials!' });
     }
 
-    const age = 1000 * 60 * 60 * 24 * 7; // 7 days
+    if (user.isFrozen) {
+			user.isFrozen = false;
+			await user.save();
+		}
 
+    const age = 1000 * 60 * 60 * 24 * 7; // 7 days
     const token = jwt.sign(
       {
         id: user._id,
@@ -259,5 +252,21 @@ const userProfile = async (req, res) => {
   }
  }
 
+ // Freeze Account
+ const freezeAccount = async (req, res) => {
+	try {
+		const user = await User.findById(req.user._id);
+		if (!user) {
+			return res.status(400).json({ error: "User not found" });
+		}
 
-export { signUpUser, signInUser, logoutUser, followUnFollowUser, updateUser ,userProfile ,getSuggestedUSers};
+		user.isFrozen = true;
+		await user.save();
+
+		res.status(200).json({ success: true });
+	} catch (error) {
+		res.status(500).json({ error: error.message });
+	}
+};
+
+export { signUpUser, signInUser, logoutUser, followUnFollowUser, updateUser ,userProfile ,getSuggestedUSers ,freezeAccount};

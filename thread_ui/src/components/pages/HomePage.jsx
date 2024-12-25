@@ -9,7 +9,7 @@ import { Box, Flex } from "@chakra-ui/react"
 import SuggestedUsers from "../SuggestedUsers"
 
 const HomePage = () => {
-
+  
   const showToast = useShowToast();
   const [posts ,setPosts] = useRecoilState(postAtom);
   const [isLoading ,setLoading ] = useState(true);

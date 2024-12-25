@@ -69,6 +69,7 @@ const ChatPage = () => {
         setConversation(res.data);
       } catch (error) {
         showToast("Error", "Failed to fetch conversations", "error");
+        console.log(error.message)
       } finally {
         setLoadingConversation(false);
       }

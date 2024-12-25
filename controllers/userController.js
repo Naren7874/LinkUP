@@ -13,41 +13,50 @@ dotenv.config();
 // User Sign Up
 const signUpUser = async (req, res) => {
   try {
-		const { name, email, username, password } = req.body;
-		const user = await User.findOne({ $or: [{ email }, { username }] });
+    const { name, email, username, password } = req.body;
 
-		if (user) {
-			return res.status(400).json({ error: "User already exists" });
-		}
-		const salt = await bcrypt.genSalt(10);
-		const hashedPassword = await bcrypt.hash(password, salt);
+    // Check if email or username already exists
+    const existingUser = await User.findOne({
+      $or: [{ email }, { username }],
+    });
 
-		const newUser = new User({
-			name,
-			email,
-			username,
-			password: hashedPassword,
-		});
-		await newUser.save();
+    if (existingUser) {
+      if (existingUser.email === email) {
+        return res.status(400).json({ error: "Email is already taken." });
+      }
+      if (existingUser.username === username) {
+        return res.status(400).json({ error: "Username is already taken." });
+      }
+    }
 
-		if (newUser) {
-			generateTokenAndSetCookie(newUser._id, res);
+    // Hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-			res.status(201).json({
-				_id: newUser._id,
-				name: newUser.name,
-				email: newUser.email,
-				username: newUser.username,
-				bio: newUser.bio,
-				profilePic: newUser.profilePic,
-			});
-		} else {
-			res.status(400).json({ error: "Invalid user data" });
-		}
-	} catch (err) {
-		res.status(500).json({ error: err.message });
-		console.log("Error in signupUser: ", err.message);
-	}
+    // Create a new user
+    const newUser = await User.create({
+      name,
+      email,
+      username,
+      password: hashedPassword,
+    });
+
+    // Generate token and set it as a cookie
+    generateTokenAndSetCookie(newUser._id, res);
+
+    // Send a success response
+    res.status(201).json({
+      _id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      username: newUser.username,
+      bio: newUser.bio,
+      profilePic: newUser.profilePic,
+    });
+  } catch (err) {
+    console.error("Error in signUpUser:", err.message);
+    res.status(500).json({ error: "An error occurred while signing up." });
+  }
 };
 
 // User Sign In
@@ -189,7 +198,6 @@ const updateUser = async (req, res) => {
       },},
       {arrayFilters: [{ "reply.userId": userId }]}
     )
-    
 		res.status(200).json(user);
 	} catch (err) {
 		res.status(500).json({ error: err.message });

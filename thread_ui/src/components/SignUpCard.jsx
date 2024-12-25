@@ -34,31 +34,25 @@ export default function SignupCard() {
 	});
 
 	const showToast = useShowToast();
-	const setUser = useSetRecoilState(userAtom);
-
 	const handleSignup = async () => {
 		try {
-			const { data } = await apiReq.post("/users/signup", inputs, {
-				headers: {
-					"Content-Type": "application/json",
-				},
-			});
-
+			const { data } = await apiReq.post("/users/signup", inputs);
+	
 			if (data.error) {
-				// toast.error(data.error);
-				showToast("Error"  , data.error , "error");
+				showToast("Error", data.error, "error");
 				return;
 			}
-
+	
 			// Store user information in localStorage
 			localStorage.setItem("user-threads", JSON.stringify(data));
-			setUser(data);
-			toast.success("Signup Success");
+			toast.success("Signup Successful!");
+			setTimeout(() => setAuthScreen("login"), 1500);
 		} catch (error) {
-			const errorMsg = error.response?.data?.message || error.message
+			const errorMsg = error.response?.data?.message || error.message;
 			toast.error(errorMsg);
 		}
 	};
+	
 
 	return (
 		<Flex align={"center"} justify={"center"}>

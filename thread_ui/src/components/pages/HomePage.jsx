@@ -5,13 +5,14 @@ import Post from "../Post"
 import UserPostSkeleton from "../skeleton/UserPostSkeleton"
 import { useRecoilState } from "recoil"
 import postAtom from "../../atoms/postAtom"
+import { Box, Flex } from "@chakra-ui/react"
+import SuggestedUsers from "../SuggestedUsers"
 
 const HomePage = () => {
 
   const showToast = useShowToast();
   const [posts ,setPosts] = useRecoilState(postAtom);
   const [isLoading ,setLoading ] = useState(true);
-
 
 
   useEffect(()=>{
@@ -37,8 +38,8 @@ const HomePage = () => {
     getFeed();
   },[showToast,setPosts])
   return (
-    <>
-    {
+    <Flex gap={10} alignItems={"start"}>
+    <Box flex={70}> {
       isLoading && (
         <>
           <UserPostSkeleton/>
@@ -54,8 +55,11 @@ const HomePage = () => {
       posts.map((post) =>
           <Post post={post} postedBy={post.postedBy} key={post._id}/>
       )
-    }
-    </>
+    }</Box>
+    <Box flex={30} display={{base:"none" , md:"block"}}>
+      <SuggestedUsers/> 
+    </Box>
+    </Flex>
   )
 }
 

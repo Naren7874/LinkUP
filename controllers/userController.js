@@ -229,6 +229,35 @@ const userProfile = async (req, res) => {
   }
 };
 
+// Get Suggested Users
+ const getSuggestedUSers = async ( req ,res)=>{
+  try {
+    // exclude the current user from the suggested user  ans also don't add the user which current user is following
 
-export { signUpUser, signInUser, logoutUser, followUnFollowUser, updateUser ,userProfile};
+    const currentUserId = req.user._id;
+    const userFollowedByCurrentUser =  await User.findById(currentUserId).select("following");
 
+    const users = await User.aggregate([
+      {
+        $match:{
+          _id: { $ne: currentUserId },   
+         }
+      },
+      {
+        $sample: { size:10}
+      }
+    ])
+
+    const filterdUser = users.filter(user => !userFollowedByCurrentUser.following.includes(user._id));
+    const suggestedUsers = filterdUser.slice(0,4)
+
+    suggestedUsers.forEach(user => user.password = null);
+    res.status(200).json(suggestedUsers);  // return 4 suggested users  which are not followed by the current user.
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+ }
+
+
+export { signUpUser, signInUser, logoutUser, followUnFollowUser, updateUser ,userProfile ,getSuggestedUSers};

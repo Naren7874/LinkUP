@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import {
   Avatar,
   Box,
@@ -20,21 +19,15 @@ import { BsInstagram } from "react-icons/bs";
 import { useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import { Link as RouterLink } from "react-router-dom";
-import { useState } from "react";
-import useShowToast from "../hooks/useShowToast";
-import apiReq from "./lib/apiReq";
+import useFollowUnfollow from "../hooks/useFollowUnfollow";
 
 const UserHeader = ({ user }) => {
   const toast = useToast();
   const { colorMode } = useColorMode();
   const currentUser = useRecoilValue(userAtom);
-  const showToast = useShowToast();
-  const [updating, setUpdating] = useState(false);
 
-  // Ensure that `user` and `currentUser` are defined before accessing their properties
-  const [following, setFollowing] = useState(
-    user && currentUser ? user.followers.includes(currentUser._id) : false
-  );
+  // Use the custom hook to manage follow/unfollow logic
+  const { handleFollowUnfollow, following, updating } = useFollowUnfollow(user);
 
   const copyUrl = () => {
     const currentUrl = window.location.href;
@@ -53,33 +46,6 @@ const UserHeader = ({ user }) => {
     );
   };
 
-  const handleFollowUnFollow = async () => {
-    if (!currentUser) {
-      showToast("Error", "You need to be logged in.", "error");
-      return;
-    }
-    if (updating) {
-      return;
-    }
-    setUpdating(true);
-    try {
-      const res = await apiReq.post(`/users/follow/${user._id}`);
-      setFollowing(!following);
-      if (following) {
-        showToast("Success", `User unfollowed successfully.`, "success");
-        user.followers.pop();
-      } else {
-        showToast("Success", `User followed successfully.`, "success");
-        user.followers.push(currentUser._id);
-      }
-    } catch (error) {
-      showToast("Error", error.message || "Failed to follow/unfollow user.", "error");
-    } finally {
-      setUpdating(false);
-    }
-  };
-
-  // Render only if `user` is available
   if (!user) return null;
 
   return (
@@ -120,7 +86,7 @@ const UserHeader = ({ user }) => {
         </RouterLink>
       ) : (
         currentUser && (
-          <Button size={"sm"} onClick={handleFollowUnFollow} isLoading={updating}>
+          <Button size={"sm"} onClick={handleFollowUnfollow} isLoading={updating}>
             {following ? "Unfollow" : "Follow"}
           </Button>
         )

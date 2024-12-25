@@ -19,6 +19,7 @@ import apiReq from "./lib/apiReq.js";
 import userAtom from "../atoms/userAtom.js";
 import { useSocket } from "../context/SocketContext.jsx";
 import conversationAtom from "../atoms/messagesAtom.js";
+import messageSound from '../assets/sounds/message.mp3';
 const MessageContainer = () => {
   const [selectedConversation, setSelectedConversation] = useRecoilState(
     selectedConversationAtom
@@ -30,7 +31,6 @@ const MessageContainer = () => {
   const { socket } = useSocket();
   const bottomRef = useRef(); // Ref to track the last message
   const setConversations = useSetRecoilState(conversationAtom);
-
 
   useEffect(()=>{
 
@@ -76,6 +76,8 @@ const MessageContainer = () => {
       setMessages((prev) => [...prev, message]);
       }
 
+      const sound = new Audio(messageSound);
+      sound.play()
       setConversations((prev) => {
 				const updatedConversations = prev.map((conversation) => {
 					if (conversation._id === message.conversationId) {

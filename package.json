@@ -1,0 +1,12 @@
+{
+  "name": "thread3",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+   "build": "npm install --prefix backend && npm install --prefix thread_ui && npm run build --prefix thread_ui",
+    "start": "npm run start --prefix backend"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

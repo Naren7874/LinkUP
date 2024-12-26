@@ -2,7 +2,7 @@ import axios from "axios";
 
 
 const apiReq = axios.create({
-  baseURL: "http://localhost:8800/api",
+  baseURL:import.meta.env.MODE === "development" ? "http://localhost:8800/api" : "/api",
   withCredentials: true, 
 });
 

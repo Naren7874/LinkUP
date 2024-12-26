@@ -8,7 +8,7 @@ import messageRoutes from './routes/messageRoutes.js';
 import cors from "cors";
 import {v2 as cloudinary} from 'cloudinary';
 import {app,server} from './socket/socket.js'
-
+import path from "path"
 dotenv.config();
 
 connectDB();
@@ -37,6 +37,15 @@ app.use(cookieParser());
 app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/messages', messageRoutes);
+
+const __dirname = path.resolve();
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../thread_ui/dist")));
+
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../thread_ui", "dist", "index.html"));
+  });
+}
 
 server.listen(port, () => {
     console.log(`Server is running on port ${port}`);
